@@ -29,5 +29,5 @@ resource "google_compute_firewall" "vof-public-firewall" {
   }
 
   source_ranges = ["0.0.0.0/0"]
-  # TODO: Add target_tags for load balancer
+  target_tags = ["${var.env_name}-vof-lb"]
 }

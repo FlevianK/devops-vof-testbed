@@ -6,7 +6,7 @@ resource "google_compute_backend_service" "website" {
   enable_cdn = false
 
   backend {
-    group = "${google_compute_instance_group.vof-app-server.self_link}"
+    group = "${google_compute_instance_group_manager.vof-app-server-group-manager.self_link}"
   }
   health_checks = ["${google_compute_https_health_check.vof-app-healthcheck.self_link}"]
 }
@@ -47,11 +47,11 @@ resource "google_compute_instance_template" "vof-app-server-template" {
 
 resource "google_compute_autoscaler" "vof-app-autoscaler"{
   name = "${var.env_name}-vof-app-autoscaler"
-  zone = "${var.zone}
-  target = "${google_compute_instance_group_manager.vof-app-server-group-manager.self_link"}
+  zone = "${var.zone}"
+  target = "${google_compute_instance_group_manager.vof-app-server-group-manager.self_link}"
   autoscaling_policy = {
-    max_replicas = ${var.max_instances}
-    min_replicas = ${var.min_instances}
+    max_replicas = "${var.max_instances}"
+    min_replicas = "${var.min_instances}"
     cooldown_period = 60
     cpu_utilization {
       target = 0.7
@@ -61,7 +61,8 @@ resource "google_compute_autoscaler" "vof-app-autoscaler"{
 
 resource "google_compute_https_health_check" "vof-app-healthcheck"{
    name = "${var.env_name}-vof-app-healthcheck}"
-   request_path = "${var.env_name}"
+   port = 8080
+   request_path = "${var.request_path}"
    check_interval_sec = "${var.check_interval_sec}"
    timeout_sec = "${var.timeout_sec}"
    unhealthy_threshold = "${var.unhealthy_threshold}"
