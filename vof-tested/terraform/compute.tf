@@ -6,7 +6,7 @@ resource "google_compute_backend_service" "website" {
   enable_cdn = false
 
   backend {
-    group = "${google_compute_instance_group_manager.vof-app-server-group-manager.self_link}"
+    group = "${google_compute_instance_group_manager.vof-app-server-group-manager.instance_group}"
   }
   health_checks = ["${google_compute_https_health_check.vof-app-healthcheck.self_link}"]
 }
@@ -28,8 +28,7 @@ resource "google_compute_instance_template" "vof-app-server-template" {
   instance_description = "Instance created from base template"
 
   network_interface {
-    network = "${google_compute_network.vof-network.self_link}"
-    subnetwork = "${google_compute_subnetwork.vof-private-subnetwork.self_link}"
+    network =  "${var.env_name}-vof-network"
   }
   
   disk {
@@ -60,12 +59,11 @@ resource "google_compute_autoscaler" "vof-app-autoscaler"{
 }
 
 resource "google_compute_https_health_check" "vof-app-healthcheck"{
-   name = "${var.env_name}-vof-app-healthcheck}"
+   name = "${var.env_name}-vof-app-healthcheck"
    port = 8080
    request_path = "${var.request_path}"
    check_interval_sec = "${var.check_interval_sec}"
    timeout_sec = "${var.timeout_sec}"
    unhealthy_threshold = "${var.unhealthy_threshold}"
    healthy_threshold = "${var.healthy_threshold}"
-
 } 

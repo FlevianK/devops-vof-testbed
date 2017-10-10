@@ -16,12 +16,12 @@ resource "google_compute_firewall" "vof-internal-firewall" {
     ports = ["0-65535"]
   }
 
-  source_ranges = ["{var.ip_cidr_range}"]
+  source_ranges = ["${var.ip_cidr_range}"]
 }
 
 resource "google_compute_firewall" "vof-public-firewall" {
   name = "${var.env_name}-vof-public-firewall"
-  network = "{google_compute_network.vof-network.name}"
+  network = "${google_compute_network.vof-network.name}"
 
   allow {
     protocol = "tcp"

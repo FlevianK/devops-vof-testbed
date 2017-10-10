@@ -10,9 +10,6 @@ variable "google_project_id" {
 variable "ip_cidr_range" {
   type = "string"
 }
-variable "accounts_json" {
-    type = "string"
-}
 variable "zone" {
     type = "string"
 }
@@ -97,4 +94,11 @@ variable "database_failover_target" {
 variable "database_connect_retry_interval" {
   type = "string"
 }
+variable "state_path" {
+  type = "string"
+}
 
+variable "credential_file" {
+  type = "string"
+  default = "service-account.json"
+}
