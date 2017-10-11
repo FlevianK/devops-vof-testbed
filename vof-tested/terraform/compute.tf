@@ -1,14 +1,14 @@
 resource "google_compute_backend_service" "website" {
   name = "${var.env_name}-vof-lb"
   description = "the Vof load balancer"
-  port_name = "https"
-  protocol = "HTTPS"
+  port_name = "http"
+  protocol = "HTTP"
   enable_cdn = false
 
   backend {
     group = "${google_compute_instance_group_manager.vof-app-server-group-manager.instance_group}"
   }
-  health_checks = ["${google_compute_https_health_check.vof-app-healthcheck.self_link}"]
+  health_checks = ["${google_compute_http_health_check.vof-app-healthcheck.self_link}"]
 }
 
 resource "google_compute_instance_group_manager" "vof-app-server-group-manager" {
@@ -18,6 +18,16 @@ resource "google_compute_instance_group_manager" "vof-app-server-group-manager" 
   zone = "${var.zone}"
   update_strategy = "NONE"
   target_size = 1
+  
+  named_port {
+    name = "http"
+    port = "80"
+  }
+
+  named_port {
+    name = "https"
+    port = "443"
+  }
 }
 
 resource "google_compute_instance_template" "vof-app-server-template" {
@@ -39,6 +49,8 @@ resource "google_compute_instance_template" "vof-app-server-template" {
     disk_size_gb = "${var.vof_disk_size}"
   }
 
+  metadata_startup_script = "cd /home/vof/app/vof-tracker && env PORT=80 bundle exec puma -C config/puma.rb"
+
   lifecycle {
     create_before_destroy = true
   }
@@ -58,9 +70,9 @@ resource "google_compute_autoscaler" "vof-app-autoscaler"{
  }
 }
 
-resource "google_compute_https_health_check" "vof-app-healthcheck"{
+resource "google_compute_http_health_check" "vof-app-healthcheck"{
    name = "${var.env_name}-vof-app-healthcheck"
-   port = 8080
+   port = 80
    request_path = "${var.request_path}"
    check_interval_sec = "${var.check_interval_sec}"
    timeout_sec = "${var.timeout_sec}"

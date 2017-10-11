@@ -102,3 +102,11 @@ variable "credential_file" {
   type = "string"
   default = "service-account.json"
 }
+variable "db_instance_tier" {
+  type = "string"
+  default = "db-f1-micro"
+}
+variable "vof_host" {
+  type = "string"
+  default = "105.21.32.62"
+}
