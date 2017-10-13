@@ -17,7 +17,23 @@ resource "google_compute_target_http_proxy" "vof-http-proxy" {
 resource "google_compute_url_map" "vof-http-url-map" {
   name = "${var.env_name}-vof-http-url-map"
   default_service = "${google_compute_backend_service.website.self_link}"
+
+  host_rule {
+    hosts = ["${google_compute_global_address.vof-entrance-ip.address}"]
+    path_matcher = "allpaths"
+  }
+  path_matcher {
+    name            = "allpaths"
+    default_service = "${google_compute_backend_service.website.self_link}"
+
+    path_rule {
+      paths   = ["/*"]
+      service = "${google_compute_backend_service.website.self_link}"
+    }
+  }
 }
+
+
 
 resource "google_compute_firewall" "vof-internal-firewall" {
   name = "${var.env_name}-vof-internal-network"
@@ -38,7 +54,6 @@ resource "google_compute_firewall" "vof-internal-firewall" {
   }
 
   source_ranges = ["${var.ip_cidr_range}"]
-  target_tags = ["${var.env_name}-vof-lb"]
 }
 
 resource "google_compute_firewall" "vof-public-firewall" {
@@ -52,4 +67,17 @@ resource "google_compute_firewall" "vof-public-firewall" {
 
   source_ranges = ["0.0.0.0/0"]
   target_tags = ["${var.env_name}-vof-lb"]
+}
+
+resource "google_compute_firewall" "vof-allow-healthcheck-firewall" {
+  name = "${var.env_name}-vof-allow-healthcheck-firewall"
+  network = "${google_compute_network.vof-network.name}"
+
+  allow {
+    protocol = "tcp"
+    ports = ["8080"]
+  }
+
+  source_ranges = ["130.211.0.0/22", "35.191.0.0/16"]
+  target_tags = ["${var.env_name}-vof-app-server", "vof-app-server"]
 }

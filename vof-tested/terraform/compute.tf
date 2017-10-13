@@ -20,14 +20,10 @@ resource "google_compute_instance_group_manager" "vof-app-server-group-manager" 
   target_size = 1
   
   named_port {
-    name = "http"
-    port = "80"
+    name = "customhttp"
+    port = 8080
   }
 
-  named_port {
-    name = "https"
-    port = "443"
-  }
 }
 
 resource "google_compute_instance_template" "vof-app-server-template" {
@@ -36,9 +32,13 @@ resource "google_compute_instance_template" "vof-app-server-template" {
   region = "${var.region}"
   description = "Base template to create VOF instances"
   instance_description = "Instance created from base template"
+  depends_on = ["google_sql_database_instance.vof-master-database-instance", "random_id.vof-db-user-password"]
+  tags = ["${var.env_name}-vof-app-server", "vof-app-server"]
+
 
   network_interface {
-    network =  "${var.env_name}-vof-network"
+    subnetwork =  "${var.env_name}-vof-private-subnetwork"
+    access_config {}
   }
   
   disk {
@@ -49,7 +49,15 @@ resource "google_compute_instance_template" "vof-app-server-template" {
     disk_size_gb = "${var.vof_disk_size}"
   }
 
-  metadata_startup_script = "cd /home/vof/app/vof-tracker && env PORT=80 bundle exec puma -C config/puma.rb"
+  metadata {
+		databaseUser = "${var.env_name}-vof-database-user"
+		databasePassword = "${random_id.vof-db-user-password.b64}"
+		databaseHost = "${google_sql_database_instance.vof-master-database-instance.ip_address.0.ip_address}"
+		databasePort = "5432"
+		databaseName = "vof-database-flev"
+    startup-script = "/home/vof/start_vof.sh"
+    serial-port-enable = 1
+	}
 
   lifecycle {
     create_before_destroy = true
@@ -72,7 +80,7 @@ resource "google_compute_autoscaler" "vof-app-autoscaler"{
 
 resource "google_compute_http_health_check" "vof-app-healthcheck"{
    name = "${var.env_name}-vof-app-healthcheck"
-   port = 80
+   port = 8080
    request_path = "${var.request_path}"
    check_interval_sec = "${var.check_interval_sec}"
    timeout_sec = "${var.timeout_sec}"

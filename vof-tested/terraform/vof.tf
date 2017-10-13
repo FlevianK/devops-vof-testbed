@@ -49,6 +49,10 @@ variable "request_path" {
 variable "database_host_name" {
   type = "string"
 }
+variable "vof_host" {
+  type = "string"
+  default = "105.21.32.62"
+}
 variable "database_master_replica_password" {
   type = "string"
 }
@@ -105,8 +109,4 @@ variable "credential_file" {
 variable "db_instance_tier" {
   type = "string"
   default = "db-f1-micro"
-}
-variable "vof_host" {
-  type = "string"
-  default = "105.21.32.62"
 }
