@@ -1,7 +1,7 @@
 resource "google_compute_backend_service" "website" {
   name = "${var.env_name}-vof-lb"
   description = "the Vof load balancer"
-  port_name = "http"
+  port_name = "customhttp"
   protocol = "HTTP"
   enable_cdn = false
 
