@@ -1,0 +1,4 @@
+*/.DS_Store
+*/terraform/service_account.json
+*/packer-image/service-account.json
+*/terraform/.terraform
